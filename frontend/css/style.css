@@ -200,3 +200,10 @@ a { text-decoration: none; color: inherit; }
   font-size: 13px;
   margin-bottom: 16px;
 }
+
+/* ===== FORM ROW (deux colonnes) ===== */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
