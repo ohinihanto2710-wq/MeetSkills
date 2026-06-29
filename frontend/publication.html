@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Publier une annonce - MeetSkills</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header__logo">
+      <a href="index.html">
+        <svg width="28" height="28" viewBox="0 0 200 200">
+          <g fill="none" stroke="#3CB371" stroke-width="14" stroke-linecap="round">
+            <path d="M100 100 C 100 60, 70 30, 40 35"/>
+            <path d="M100 100 C 100 60, 120 30, 150 35"/>
+            <path d="M100 100 C 140 100, 170 70, 165 40"/>
+            <path d="M100 100 C 140 100, 170 130, 165 160"/>
+            <path d="M100 100 C 100 140, 130 170, 160 165"/>
+            <path d="M100 100 C 100 140, 80 170, 50 165"/>
+            <path d="M100 100 C 60 100, 30 130, 35 160"/>
+            <path d="M100 100 C 60 100, 30 70, 35 40"/>
+          </g>
+        </svg>
+        <span>MEETSKILLS</span>
+      </a>
+    </div>
+    <nav class="header__nav">
+      <a href="recherche.html">Trouver un mentor</a>
+      <a href="publication.html" style="color: var(--green); font-weight:600;">Offrir du mentorat</a>
+      <a href="messagerie.html">Messages</a>
+    </nav>
+    <div class="header__actions" id="headerActions"></div>
+  </header>
+
+  <div class="page-content" style="max-width: 620px;">
+    <h1 class="page-title">Publier une annonce</h1>
+    <p class="page-subtitle">Proposez votre aide ou trouvez quelqu'un pour vous accompagner</p>
+
+    <div class="auth-card">
+
+      <!-- TOGGLE OFFRE / DEMANDE -->
+      <div class="toggle-group" id="toggleGroup">
+        <button class="toggle-btn toggle-btn--active" id="btnOffre" onclick="setType('offre')">
+          J'offre du mentorat
+        </button>
+        <button class="toggle-btn" id="btnDemande" onclick="setType('demande')">
+          Je recherche de l'aide
+        </button>
+      </div>
+
+      <div id="errorMsg" class="error-msg" style="display:none;"></div>
+      <div id="successMsg" class="success-msg" style="display:none;"></div>
+
+      <div class="form-group">
+        <label>Matière(s) / Compétence(s)</label>
+        <div id="competencesList" class="chips-container">
+          <p class="loading">Chargement des compétences...</p>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Domaine d'études</label>
+          <input type="text" id="domaine" placeholder="Ex: Informatique, Droit..." />
+        </div>
+        <div class="form-group">
+          <label>Niveau visé</label>
+          <select id="niveau">
+            <option value="licence">Licence (L1-L3)</option>
+            <option value="master">Master (M1-M2)</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="description" rows="4" placeholder="Décrivez le contexte, vos objectifs ou ce que vous proposez..."></textarea>
+      </div>
+
+      <div class="info-box">
+        ℹ️ Les sessions se déroulent exclusivement en ligne (Google Meet, Zoom, WhatsApp...).
+      </div>
+
+      <button class="btn btn--primary btn--full" id="publishBtn" onclick="publier()">
+        Publier l'annonce
+      </button>
+
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    let typeAnnonce = 'offre';
+    let competencesSelectionnees = [];
+
+    function setType(type) {
+      typeAnnonce = type;
+      document.getElementById('btnOffre').classList.toggle('toggle-btn--active', type === 'offre');
+      document.getElementById('btnDemande').classList.toggle('toggle-btn--active', type === 'demande');
+    }
+
+    async function chargerCompetences() {
+      if (!isLoggedIn()) { redirectToLogin(); return; }
+      const competences = await getCompetences();
+      const container = document.getElementById('competencesList');
+      if (!competences || competences.length === 0) {
+        container.innerHTML = '<p class="loading">Aucune compétence disponible.</p>';
+        return;
+      }
+      container.innerHTML = competences.map(c => `
+        <span class="chip" id="chip-${c.id}" onclick="toggleCompetence(${c.id}, '${c.nom}')">
+          ${c.nom}
+        </span>
+      `).join('');
+
+      // Pré-sélection si type dans l'URL
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('type') === 'demande') setType('demande');
+    }
+
+    function toggleCompetence(id, nom) {
+      const chip = document.getElementById(`chip-${id}`);
+      const index = competencesSelectionnees.indexOf(id);
+      if (index === -1) {
+        competencesSelectionnees.push(id);
+        chip.classList.add('chip--active');
+      } else {
+        competencesSelectionnees.splice(index, 1);
+        chip.classList.remove('chip--active');
+      }
+    }
+
+    async function publier() {
+      const errorMsg = document.getElementById('errorMsg');
+      const successMsg = document.getElementById('successMsg');
+      const btn = document.getElementById('publishBtn');
+
+      errorMsg.style.display = 'none';
+      successMsg.style.display = 'none';
+
+      if (competencesSelectionnees.length === 0) {
+        errorMsg.textContent = 'Veuillez sélectionner au moins une compétence.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      const data = {
+        type_annonce: typeAnnonce,
+        competences_ids: competencesSelectionnees,
+        domaine_etudes: document.getElementById('domaine').value.trim(),
+        niveau: document.getElementById('niveau').value,
+        description: document.getElementById('description').value.trim(),
+      };
+
+      if (!data.domaine_etudes) {
+        errorMsg.textContent = 'Veuillez renseigner le domaine d\'études.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      btn.textContent = 'Publication...';
+      btn.disabled = true;
+
+      const result = await publierAnnonce(data);
+
+      if (result.status === 201) {
+        successMsg.textContent = 'Annonce publiée avec succès ! Le matching est en cours...';
+        successMsg.style.display = 'block';
+        setTimeout(() => window.location.href = 'index.html', 2000);
+      } else {
+        errorMsg.textContent = 'Une erreur est survenue. Veuillez réessayer.';
+        errorMsg.style.display = 'block';
+        btn.textContent = 'Publier l\'annonce';
+        btn.disabled = false;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', chargerCompetences);
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trouver un mentor - MeetSkills</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header__logo">
+      <a href="index.html">
+        <svg width="28" height="28" viewBox="0 0 200 200">
+          <g fill="none" stroke="#3CB371" stroke-width="14" stroke-linecap="round">
+            <path d="M100 100 C 100 60, 70 30, 40 35"/>
+            <path d="M100 100 C 100 60, 120 30, 150 35"/>
+            <path d="M100 100 C 140 100, 170 70, 165 40"/>
+            <path d="M100 100 C 140 100, 170 130, 165 160"/>
+            <path d="M100 100 C 100 140, 130 170, 160 165"/>
+            <path d="M100 100 C 100 140, 80 170, 50 165"/>
+            <path d="M100 100 C 60 100, 30 130, 35 160"/>
+            <path d="M100 100 C 60 100, 30 70, 35 40"/>
+          </g>
+        </svg>
+        <span>MEETSKILLS</span>
+      </a>
+    </div>
+    <nav class="header__nav">
+      <a href="recherche.html" style="color: var(--green); font-weight:600;">Trouver un mentor</a>
+      <a href="publication.html">Offrir du mentorat</a>
+      <a href="messagerie.html">Messages</a>
+    </nav>
+    <div class="header__actions" id="headerActions"></div>
+  </header>
+
+  <div class="page-content">
+    <h1 class="page-title">Trouver un mentor</h1>
+    <p class="page-subtitle">Filtrez par matière, université ou disponibilité</p>
+
+    <!-- FILTRES -->
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Rechercher une matière..." />
+      <input type="text" id="domaineInput" placeholder="Domaine d'études..." />
+      <button class="btn btn--primary" onclick="filtrer()">Filtrer</button>
+    </div>
+
+    <!-- RÉSULTATS -->
+    <div id="resultCount" class="result-count"></div>
+    <div id="resultsList" class="results-list">
+      <p class="loading">Chargement...</p>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    let toutesAnnonces = [];
+
+    async function chargerAnnonces() {
+      if (!isLoggedIn()) { redirectToLogin(); return; }
+      const annonces = await getAnnonces('offre');
+      toutesAnnonces = annonces || [];
+      afficherResultats(toutesAnnonces);
+    }
+
+    function filtrer() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const domaine = document.getElementById('domaineInput').value.toLowerCase();
+      const filtrees = toutesAnnonces.filter(a => {
+        const matchMatiere = !search || a.competences.some(c => c.nom.toLowerCase().includes(search));
+        const matchDomaine = !domaine || a.domaine_etudes.toLowerCase().includes(domaine);
+        return matchMatiere && matchDomaine;
+      });
+      afficherResultats(filtrees);
+    }
+
+    function afficherResultats(annonces) {
+      const container = document.getElementById('resultsList');
+      const count = document.getElementById('resultCount');
+      count.textContent = `${annonces.length} annonce(s) trouvée(s)`;
+
+      if (annonces.length === 0) {
+        container.innerHTML = '<p class="loading">Aucune annonce ne correspond à votre recherche.</p>';
+        return;
+      }
+
+      container.innerHTML = annonces.map(a => {
+        const initiales = a.auteur_nom.split(' ').map(n => n[0]).join('');
+        const competences = a.competences.map(c =>
+          `<span class="badge badge--green">${c.nom}</span>`
+        ).join('');
+        return `
+          <div class="result-card">
+            <div class="result-card__left">
+              <div class="avatar avatar--lg">${initiales}</div>
+              <div>
+                <div class="card__name">${a.auteur_nom}</div>
+                <div class="card__sub">${a.domaine_etudes} · ${a.niveau}</div>
+                <div style="margin-top:8px;">${competences}</div>
+              </div>
+            </div>
+            <div class="result-card__right">
+              <button class="btn btn--primary" onclick="contacter(${a.auteur})">Contacter</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function contacter(userId) {
+      const result = await creerConversation(userId);
+      if (result.status === 201 || result.status === 200) {
+        window.location.href = 'messagerie.html';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', chargerAnnonces);
+  </script>
+
+</body>
+</html>

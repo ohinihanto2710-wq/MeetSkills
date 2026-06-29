@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Messages - MeetSkills</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header__logo">
+      <a href="index.html">
+        <svg width="28" height="28" viewBox="0 0 200 200">
+          <g fill="none" stroke="#3CB371" stroke-width="14" stroke-linecap="round">
+            <path d="M100 100 C 100 60, 70 30, 40 35"/>
+            <path d="M100 100 C 100 60, 120 30, 150 35"/>
+            <path d="M100 100 C 140 100, 170 70, 165 40"/>
+            <path d="M100 100 C 140 100, 170 130, 165 160"/>
+            <path d="M100 100 C 100 140, 130 170, 160 165"/>
+            <path d="M100 100 C 100 140, 80 170, 50 165"/>
+            <path d="M100 100 C 60 100, 30 130, 35 160"/>
+            <path d="M100 100 C 60 100, 30 70, 35 40"/>
+          </g>
+        </svg>
+        <span>MEETSKILLS</span>
+      </a>
+    </div>
+    <nav class="header__nav">
+      <a href="recherche.html">Trouver un mentor</a>
+      <a href="publication.html">Offrir du mentorat</a>
+      <a href="messagerie.html" style="color: var(--green); font-weight:600;">Messages</a>
+    </nav>
+    <div class="header__actions" id="headerActions"></div>
+  </header>
+
+  <div class="messaging-layout">
+
+    <!-- LISTE DES CONVERSATIONS -->
+    <div class="conv-list">
+      <div class="conv-list__header">
+        <h2>Conversations</h2>
+      </div>
+      <div id="convList">
+        <p class="loading" style="padding:16px;">Chargement...</p>
+      </div>
+    </div>
+
+    <!-- CONVERSATION ACTIVE -->
+    <div class="conv-active" id="convActive">
+      <div class="conv-empty">
+        <p>Sélectionnez une conversation</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    let convActive = null;
+
+    async function chargerConversations() {
+      if (!isLoggedIn()) { redirectToLogin(); return; }
+      const convs = await getConversations();
+      const container = document.getElementById('convList');
+
+      if (!convs || convs.length === 0) {
+        container.innerHTML = '<p class="loading" style="padding:16px;">Aucune conversation.</p>';
+        return;
+      }
+
+      container.innerHTML = convs.map(c => {
+        const autres = c.participants.filter(p => p.email !== localStorage.getItem('user_email'));
+        const nom = autres.length > 0 ? `${autres[0].prenom} ${autres[0].nom}` : 'Inconnu';
+        const initiales = nom.split(' ').map(n => n[0]).join('');
+        const dernier = c.derniers_messages.length > 0
+          ? c.derniers_messages[c.derniers_messages.length - 1].contenu
+          : 'Aucun message';
+        const nonLus = c.non_lus > 0 ? `<span class="badge-count">${c.non_lus}</span>` : '';
+
+        return `
+          <div class="conv-item" id="conv-${c.id}" onclick="ouvrirConversation(${c.id}, '${nom}', '${initiales}')">
+            <div class="avatar">${initiales}</div>
+            <div class="conv-item__info">
+              <div class="conv-item__name">${nom}</div>
+              <div class="conv-item__last">${dernier.substring(0, 40)}...</div>
+            </div>
+            ${nonLus}
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function ouvrirConversation(id, nom, initiales) {
+      convActive = id;
+
+      // Mettre en surbrillance
+      document.querySelectorAll('.conv-item').forEach(el => el.classList.remove('conv-item--active'));
+      document.getElementById(`conv-${id}`).classList.add('conv-item--active');
+
+      const messages = await getMessages(id);
+      const container = document.getElementById('convActive');
+
+      container.innerHTML = `
+        <div class="conv-header">
+          <div class="avatar">${initiales}</div>
+          <div>
+            <div class="conv-header__name">${nom}</div>
+            <div class="conv-header__status">En ligne</div>
+          </div>
+        </div>
+        <div class="messages-list" id="messagesList"></div>
+        <div class="message-input">
+          <input type="text" id="messageInput" placeholder="Écrire un message..." 
+            onkeydown="if(event.key==='Enter') envoyerMsg()" />
+          <button class="btn btn--primary" onclick="envoyerMsg()">Envoyer</button>
+        </div>
+      `;
+
+      afficherMessages(messages || []);
+    }
+
+    function afficherMessages(messages) {
+      const container = document.getElementById('messagesList');
+      const userEmail = localStorage.getItem('user_email');
+
+      if (messages.length === 0) {
+        container.innerHTML = '<p class="loading" style="text-align:center; padding:20px;">Aucun message. Commencez la conversation !</p>';
+        return;
+      }
+
+      container.innerHTML = messages.map(m => {
+        const isMoi = m.expediteur_nom === localStorage.getItem('user_nom');
+        return `
+          <div class="message ${isMoi ? 'message--moi' : 'message--autre'}">
+            <div class="message__bubble">${m.contenu}</div>
+            <div class="message__time">${new Date(m.date_envoi).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}</div>
+          </div>
+        `;
+      }).join('');
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    async function envoyerMsg() {
+      const input = document.getElementById('messageInput');
+      const contenu = input.value.trim();
+      if (!contenu || !convActive) return;
+
+      input.value = '';
+      const result = await envoyerMessage(convActive, contenu);
+
+      if (result.status === 201) {
+        const messages = await getMessages(convActive);
+        afficherMessages(messages || []);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', chargerConversations);
+  </script>
+
+</body>
+</html>
