@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mon profil - MeetSkills</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header__logo">
+      <a href="index.html">
+        <svg width="28" height="28" viewBox="0 0 200 200">
+          <g fill="none" stroke="#3CB371" stroke-width="14" stroke-linecap="round">
+            <path d="M100 100 C 100 60, 70 30, 40 35"/>
+            <path d="M100 100 C 100 60, 120 30, 150 35"/>
+            <path d="M100 100 C 140 100, 170 70, 165 40"/>
+            <path d="M100 100 C 140 100, 170 130, 165 160"/>
+            <path d="M100 100 C 100 140, 130 170, 160 165"/>
+            <path d="M100 100 C 100 140, 80 170, 50 165"/>
+            <path d="M100 100 C 60 100, 30 130, 35 160"/>
+            <path d="M100 100 C 60 100, 30 70, 35 40"/>
+          </g>
+        </svg>
+        <span>MEETSKILLS</span>
+      </a>
+    </div>
+    <nav class="header__nav">
+      <a href="recherche.html">Trouver un mentor</a>
+      <a href="publication.html">Offrir du mentorat</a>
+      <a href="messagerie.html">Messages</a>
+    </nav>
+    <div class="header__actions" id="headerActions"></div>
+  </header>
+
+  <div class="page-content" style="max-width: 720px;">
+
+    <!-- CARTE PROFIL -->
+    <div class="profile-hero" id="profileHero">
+      <div class="profile-hero__loading">Chargement...</div>
+    </div>
+
+    <div class="profile-grid">
+
+      <!-- COMPÉTENCES -->
+      <div class="auth-card">
+        <h3 class="profile-section-title">Compétences (points forts)</h3>
+        <div id="profileCompetences" class="chips-container">
+          <p class="loading">Chargement...</p>
+        </div>
+      </div>
+
+      <!-- LACUNES -->
+      <div class="auth-card">
+        <h3 class="profile-section-title">Lacunes (besoin d'aide)</h3>
+        <div id="profileLacunes" class="chips-container">
+          <p class="loading">Chargement...</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MES ANNONCES -->
+    <div class="auth-card" style="margin-top: 16px;">
+      <h3 class="profile-section-title">Mes annonces</h3>
+      <div id="mesAnnonces">
+        <p class="loading">Chargement...</p>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-card__value" id="statOffres">-</div>
+        <div class="stat-card__label">Offres publiées</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__value" id="statDemandes">-</div>
+        <div class="stat-card__label">Demandes publiées</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__value" id="statMatches">-</div>
+        <div class="stat-card__label">Matches obtenus</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    async function chargerProfil() {
+      if (!isLoggedIn()) { redirectToLogin(); return; }
+
+      // Charger infos utilisateur
+      const user = await apiGet('/auth/users/me/');
+      if (!user) return;
+
+      // Sauvegarder le nom pour la messagerie
+      localStorage.setItem('user_nom', `${user.prenom} ${user.nom}`);
+      localStorage.setItem('user_email', user.email);
+
+      // Afficher la carte profil
+      const initiales = `${user.prenom[0]}${user.nom[0]}`;
+      document.getElementById('profileHero').innerHTML = `
+        <div class="profile-hero__avatar">${initiales}</div>
+        <div class="profile-hero__info">
+          <h2>${user.prenom} ${user.nom}</h2>
+          <p>${user.universite} · ${user.filiere} · ${user.niveau}</p>
+          <p class="profile-hero__bio">${user.bio || 'Aucune bio renseignée.'}</p>
+        </div>
+        <a href="publication.html" class="btn btn--accent">+ Publier</a>
+      `;
+
+      // Charger les annonces
+      const annonces = await apiGet('/matching/annonces/');
+      const mesAnnonces = (annonces || []).filter(a => a.auteur === user.id);
+
+      const offres = mesAnnonces.filter(a => a.type_annonce === 'offre');
+      const demandes = mesAnnonces.filter(a => a.type_annonce === 'demande');
+
+      document.getElementById('statOffres').textContent = offres.length;
+      document.getElementById('statDemandes').textContent = demandes.length;
+
+      // Compétences depuis les offres
+      const competences = [...new Map(
+        offres.flatMap(a => a.competences).map(c => [c.id, c])
+      ).values()];
+
+      // Lacunes depuis les demandes
+      const lacunes = [...new Map(
+        demandes.flatMap(a => a.competences).map(c => [c.id, c])
+      ).values()];
+
+      document.getElementById('profileCompetences').innerHTML = competences.length > 0
+        ? competences.map(c => `<span class="chip chip--active">${c.nom}</span>`).join('')
+        : '<p class="loading">Aucune compétence renseignée.</p>';
+
+      document.getElementById('profileLacunes').innerHTML = lacunes.length > 0
+        ? lacunes.map(c => `<span class="chip" style="background:#FBEAF0; color:#72243E; border-color:#FBEAF0;">${c.nom}</span>`).join('')
+        : '<p class="loading">Aucune lacune renseignée.</p>';
+
+      // Afficher les annonces
+      document.getElementById('mesAnnonces').innerHTML = mesAnnonces.length > 0
+        ? mesAnnonces.map(a => `
+          <div class="annonce-item">
+            <span class="badge ${a.type_annonce === 'offre' ? 'badge--green' : ''}" 
+              style="${a.type_annonce === 'demande' ? 'background:#FBEAF0;color:#72243E;' : ''}">
+              ${a.type_annonce === 'offre' ? 'Offre' : 'Demande'}
+            </span>
+            <span class="annonce-item__domaine">${a.domaine_etudes}</span>
+            <span class="annonce-item__comps">${a.competences.map(c => c.nom).join(', ')}</span>
+          </div>
+        `).join('')
+        : '<p class="loading">Aucune annonce publiée.</p>';
+
+      // Matches
+      const matches = await getMatches();
+      document.getElementById('statMatches').textContent = (matches || []).length;
+    }
+
+    document.addEventListener('DOMContentLoaded', chargerProfil);
+  </script>
+
+</body>
+</html>
