@@ -1,5 +1,5 @@
 // ===== CONFIGURATION =====
-const API_URL = 'http://127.0.0.1:8000/api';
+const API_URL = 'https://meetskills.onrender.com/api';
 
 // ===== GESTION DES TOKENS =====
 function getToken() {
