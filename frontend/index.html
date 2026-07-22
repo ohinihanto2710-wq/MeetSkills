@@ -9,7 +9,7 @@
 <body>
 
   <!-- HEADER -->
-  <header class="header">
+<header class="header">
     <div class="header__logo">
       <a href="index.html">
         <svg width="28" height="28" viewBox="0 0 200 200">
@@ -27,14 +27,13 @@
         <span>MEETSKILLS</span>
       </a>
     </div>
-    <nav class="header__nav">
+    <nav class="header__nav" id="mainNav">
       <a href="recherche.html">Trouver un mentor</a>
       <a href="publication.html">Offrir du mentorat</a>
       <a href="messagerie.html">Messages</a>
     </nav>
-    <div class="header__actions" id="headerActions">
-      <a href="connexion.html" class="btn btn--primary">Se connecter</a>
-    </div>
+    <div class="header__actions" id="headerActions"></div>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()">☰</button>
   </header>
 
   <!-- HERO -->
@@ -43,6 +42,44 @@
     <p>Trouvez un mentor ou aidez d'autres étudiants dans votre matière</p>
     <a href="inscription.html" class="btn btn--accent">Commencer</a>
   </section>
+
+  <!-- STATS -->
+<div class="stats-section">
+  <div class="stat-item">
+    <span class="stat-item__value">500+</span>
+    <span class="stat-item__label">Étudiants inscrits</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-item__value">12</span>
+    <span class="stat-item__label">Universités</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-item__value">95%</span>
+    <span class="stat-item__label">Satisfaction</span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features-section">
+  <h2>Comment ça marche ?</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="feature-card__icon">👤</span>
+      <div class="feature-card__title">Créez votre profil</div>
+      <div class="feature-card__desc">Renseignez vos compétences et vos lacunes académiques</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-card__icon">🎯</span>
+      <div class="feature-card__title">Matching automatique</div>
+      <div class="feature-card__desc">Notre algorithme vous propose les meilleurs mentors selon votre profil</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-card__icon">💬</span>
+      <div class="feature-card__title">Apprenez ensemble</div>
+      <div class="feature-card__desc">Échangez via la messagerie et organisez vos sessions en ligne</div>
+    </div>
+  </div>
+</section>
 
   <!-- SUGGESTIONS -->
   <section class="suggestions">
@@ -60,5 +97,11 @@
 
   <script src="js/api.js"></script>
   <script src="js/index.js"></script>
+<script>
+  function toggleMenu() {
+    const nav = document.getElementById('mainNav');
+    nav.classList.toggle('open');
+  }
+</script>
 </body>
 </html>

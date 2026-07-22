@@ -27,12 +27,13 @@
         <span>MEETSKILLS</span>
       </a>
     </div>
-    <nav class="header__nav">
+    <nav class="header__nav" id="mainNav">
       <a href="recherche.html">Trouver un mentor</a>
       <a href="publication.html">Offrir du mentorat</a>
       <a href="messagerie.html" style="color: var(--green); font-weight:600;">Messages</a>
     </nav>
     <div class="header__actions" id="headerActions"></div>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()">☰</button>
   </header>
 
   <div class="messaging-layout">
@@ -159,6 +160,12 @@
 
     document.addEventListener('DOMContentLoaded', chargerConversations);
   </script>
+  <script>
+  function toggleMenu() {
+    const nav = document.getElementById('mainNav');
+    nav.classList.toggle('open');
+  }
+</script>
 
 </body>
 </html>
