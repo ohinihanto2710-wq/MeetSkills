@@ -114,10 +114,25 @@
       if (result.status === 201) {
         // Connexion automatique après inscription
         const success = await login(data.email, data.password);
-        if (success) window.location.href = 'index.html';
+        if (success) {
+          window.location.href = 'index.html';
+          return;
+        }
+        // Le compte a été créé mais l'auto-connexion a échoué :
+        // on informe l'utilisateur au lieu de rester bloqué en silence.
+        errorMsg.textContent = 'Votre compte a été créé, mais la connexion automatique a échoué. Veuillez vous connecter manuellement.';
+        errorMsg.style.display = 'block';
+        setTimeout(() => { window.location.href = 'connexion.html'; }, 2000);
       } else {
-        const errors = Object.values(result.data).flat().join(' ');
-        errorMsg.textContent = errors || 'Une erreur est survenue.';
+        // Messages d'erreur détaillés, champ par champ (ex: "email: Cette adresse existe déjà.")
+        const fieldLabels = {
+          email: 'E-mail', password: 'Mot de passe', nom: 'Nom', prenom: 'Prénom',
+          telephone: 'Téléphone', universite: 'Université', filiere: 'Filière', niveau: 'Niveau'
+        };
+        const errors = Object.entries(result.data || {})
+          .map(([field, msgs]) => `${fieldLabels[field] || field} : ${[].concat(msgs).join(' ')}`)
+          .join(' | ');
+        errorMsg.textContent = errors || 'Une erreur est survenue. Veuillez réessayer.';
         errorMsg.style.display = 'block';
         btn.textContent = 'Créer mon compte';
         btn.disabled = false;
