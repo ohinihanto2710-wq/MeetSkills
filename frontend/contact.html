@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact - MeetSkills</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header__logo">
+      <a href="index.html">
+        <svg width="28" height="28" viewBox="0 0 200 200">
+          <g fill="none" stroke="#3CB371" stroke-width="14" stroke-linecap="round">
+            <path d="M100 100 C 100 60, 70 30, 40 35"/>
+            <path d="M100 100 C 100 60, 120 30, 150 35"/>
+            <path d="M100 100 C 140 100, 170 70, 165 40"/>
+            <path d="M100 100 C 140 100, 170 130, 165 160"/>
+            <path d="M100 100 C 100 140, 130 170, 160 165"/>
+            <path d="M100 100 C 100 140, 80 170, 50 165"/>
+            <path d="M100 100 C 60 100, 30 130, 35 160"/>
+            <path d="M100 100 C 60 100, 30 70, 35 40"/>
+          </g>
+        </svg>
+        <span>MEETSKILLS</span>
+      </a>
+    </div>
+    <nav class="header__nav" id="mainNav">
+      <a href="recherche.html">Trouver un mentor</a>
+      <a href="publication.html">Offrir du mentorat</a>
+      <a href="messagerie.html">Messages</a>
+    </nav>
+    <div class="header__actions" id="headerActions"></div>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()">☰</button>
+  </header>
+
+  <div class="page-content" style="max-width: 620px;">
+    <h1 class="page-title">Contact & Suggestions</h1>
+    <p class="page-subtitle">Un problème ? Une idée ? Partagez-le avec nous !</p>
+
+    <div class="auth-card">
+
+      <div id="successMsg" class="success-msg" style="display:none;">
+        ✅ Votre message a été envoyé avec succès ! Merci pour votre retour.
+      </div>
+      <div id="errorMsg" class="error-msg" style="display:none;"></div>
+
+      <!-- TYPE DE MESSAGE -->
+      <div class="form-group">
+        <label>Type de message</label>
+        <div class="toggle-group">
+          <button class="toggle-btn toggle-btn--active" onclick="setType('bug', this)">🐛 Signaler un bug</button>
+          <button class="toggle-btn" onclick="setType('suggestion', this)">💡 Suggestion</button>
+          <button class="toggle-btn" onclick="setType('autre', this)">✉️ Autre</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="nom">Votre nom</label>
+        <input type="text" id="nom" placeholder="HANTO Jordy" />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Votre e-mail</label>
+        <input type="email" id="email" placeholder="votre@email.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="sujet">Sujet</label>
+        <input type="text" id="sujet" placeholder="Décrivez brièvement votre message" />
+      </div>
+
+      <div class="form-group">
+        <label for="message">Message</label>
+        <textarea id="message" rows="5" placeholder="Décrivez en détail votre problème ou votre suggestion..."></textarea>
+      </div>
+
+      <button class="btn btn--primary btn--full" id="sendBtn" onclick="envoyerMessage()">
+        Envoyer le message
+      </button>
+
+    </div>
+
+    <!-- FAQ -->
+    <div style="margin-top: 32px;">
+      <h2 style="font-size:18px; font-weight:600; margin-bottom:16px;">Questions fréquentes</h2>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Comment trouver un mentor ? <span>+</span>
+        </div>
+        <div class="faq-answer">
+          Créez votre profil, renseignez vos lacunes et cliquez sur "Trouver un mentor". Notre algorithme vous proposera automatiquement les meilleurs matches selon vos besoins.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          MeetSkills est-il gratuit ? <span>+</span>
+        </div>
+        <div class="faq-answer">
+          Oui, MeetSkills est totalement gratuit pour tous les étudiants béninois. Pas de frais cachés.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Comment se déroulent les sessions de mentorat ? <span>+</span>
+        </div>
+        <div class="faq-answer">
+          Les sessions se déroulent exclusivement en ligne via des outils comme Google Meet, Zoom ou WhatsApp. Vous convenez des détails directement via la messagerie intégrée.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Mon université n'est pas reconnue, que faire ? <span>+</span>
+        </div>
+        <div class="faq-answer">
+          Contactez-nous via le formulaire ci-dessus en sélectionnant "Suggestion" et indiquez le nom de votre université. Nous l'ajouterons rapidement.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <p>© 2026 <span>MeetSkills</span> — Plateforme de mentorat académique au Bénin</p>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script>
+    let typeMessage = 'bug';
+
+    function setType(type, btn) {
+      typeMessage = type;
+      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('toggle-btn--active'));
+      btn.classList.add('toggle-btn--active');
+    }
+
+    function toggleFaq(el) {
+      const answer = el.nextElementSibling;
+      const icon = el.querySelector('span');
+      const isOpen = answer.style.display === 'block';
+      answer.style.display = isOpen ? 'none' : 'block';
+      icon.textContent = isOpen ? '+' : '−';
+    }
+
+    async function envoyerMessage() {
+      const nom = document.getElementById('nom').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const sujet = document.getElementById('sujet').value.trim();
+      const message = document.getElementById('message').value.trim();
+      const errorMsg = document.getElementById('errorMsg');
+      const successMsg = document.getElementById('successMsg');
+      const btn = document.getElementById('sendBtn');
+
+      errorMsg.style.display = 'none';
+      successMsg.style.display = 'none';
+
+      if (!nom || !email || !sujet || !message) {
+        errorMsg.textContent = 'Veuillez remplir tous les champs.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      btn.textContent = 'Envoi en cours...';
+      btn.disabled = true;
+
+      // Simulation d'envoi (à connecter à un vrai service email plus tard)
+      setTimeout(() => {
+        successMsg.style.display = 'block';
+        document.getElementById('nom').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('sujet').value = '';
+        document.getElementById('message').value = '';
+        btn.textContent = 'Envoyer le message';
+        btn.disabled = false;
+      }, 1500);
+    }
+
+    document.addEventListener('DOMContentLoaded', updateHeader);
+
+    function toggleMenu() {
+      const nav = document.getElementById('mainNav');
+      nav.classList.toggle('open');
+    }
+  </script>
+
+</body>
+</html>
