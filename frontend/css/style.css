@@ -56,8 +56,10 @@ a { text-decoration: none; color: inherit; }
   letter-spacing: 0.5px;
   color: var(--dark);
 }
-.header__nav { display: flex; gap: 24px; font-size: 14px; }
+.header__nav { display: flex; flex: 1; justify-content: space-evenly; gap: 16px; font-size: 14px; padding: 0 32px; }
+.header__nav a { color: var(--dark); font-weight: 500; }
 .header__nav a:hover { color: var(--green); }
+.header__nav a.active { color: var(--green); font-weight: 600; }
 
 /* ===== HERO ===== */
 .hero {
@@ -545,9 +547,13 @@ a { text-decoration: none; color: inherit; }
   }
   .header__nav.open { display: flex; }
   .header__nav a {
-    padding: 12px 0;
+    padding: 12px 8px;
     border-top: 1px solid var(--gray-border);
     font-size: 14px;
+  }
+  .header__nav a.active {
+    background: var(--green-light, #E1F5EE);
+    border-radius: 6px;
   }
   .header { flex-wrap: wrap; }
 }
@@ -717,7 +723,8 @@ body {
   transition: width 0.2s;
 }
 
-.header__nav a:hover::after { width: 100%; }
+.header__nav a:hover::after,
+.header__nav a.active::after { width: 100%; }
 
 /* ===== BADGES AMÉLIORÉS ===== */
 .badge, .chip {
