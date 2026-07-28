@@ -64,14 +64,12 @@
     let convActive = null;
 
     async function chargerConversations() {
-      if (!isLoggedIn()) { redirectToLogin(); return; }
-      const convs = await getConversations();
-      const container = document.getElementById('convList');
-
-      if (!convs || convs.length === 0) {
-        container.innerHTML = '<p class="loading" style="padding:16px;">Aucune conversation.</p>';
-        return;
-      }
+  if (!isLoggedIn()) { redirectToLogin(); return; }
+  const container = document.getElementById('convList');
+  container.innerHTML = '<div class="spinner" style="padding:16px;"></div>';
+  
+  const convs = await getConversations();
+  // ... reste du code identique
 
       container.innerHTML = convs.map(c => {
         const autres = c.participants.filter(p => p.email !== localStorage.getItem('user_email'));

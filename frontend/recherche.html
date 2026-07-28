@@ -60,12 +60,16 @@
   <script>
     let toutesAnnonces = [];
 
-    async function chargerAnnonces() {
-      if (!isLoggedIn()) { redirectToLogin(); return; }
-      const annonces = await getAnnonces('offre');
-      toutesAnnonces = annonces || [];
-      afficherResultats(toutesAnnonces);
-    }
+   async function chargerAnnonces() {
+  if (!isLoggedIn()) { redirectToLogin(); return; }
+  
+  const container = document.getElementById('resultsList');
+  container.innerHTML = '<div class="spinner"></div>';
+  
+  const annonces = await getAnnonces('offre');
+  toutesAnnonces = annonces || [];
+  afficherResultats(toutesAnnonces);
+}
 
     function filtrer() {
       const search = document.getElementById('searchInput').value.toLowerCase();

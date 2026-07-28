@@ -94,7 +94,9 @@
   <script src="js/api.js"></script>
   <script>
     async function chargerProfil() {
-      if (!isLoggedIn()) { redirectToLogin(); return; }
+  if (!isLoggedIn()) { redirectToLogin(); return; }
+  document.getElementById('profileHero').innerHTML = '<div class="spinner"></div>';
+  // ... reste du code identique
 
       // Charger infos utilisateur
       const user = await apiGet('/auth/users/me/');

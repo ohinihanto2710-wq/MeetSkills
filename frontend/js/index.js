@@ -2,6 +2,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!isLoggedIn()) return;
 
   const container = document.getElementById('suggestionsCards');
+  
+  // Spinner de chargement
+  container.innerHTML = '<div class="spinner"></div>';
+  
   const matches = await getMatches();
 
   if (!matches || matches.length === 0) {
