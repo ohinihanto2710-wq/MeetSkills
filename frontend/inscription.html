@@ -59,11 +59,43 @@
       <div class="form-row">
         <div class="form-group">
           <label>Université / Institut</label>
-          <input type="text" id="universite" placeholder="IFRI - UAC" />
+          <select id="universite" onchange="toggleAutre('universite')">
+            <option value="" disabled selected>Choisir une université</option>
+            <option value="IFRI - UAC">IFRI - UAC</option>
+            <option value="EPAC - UAC">EPAC - UAC</option>
+            <option value="ENEAM - UAC">ENEAM - UAC</option>
+            <option value="Université d'Abomey-Calavi (UAC)">Université d'Abomey-Calavi (UAC)</option>
+            <option value="Université de Parakou (UP)">Université de Parakou (UP)</option>
+            <option value="UNSTIM Abomey">UNSTIM Abomey</option>
+            <option value="Université Nationale d'Agriculture (UNA)">Université Nationale d'Agriculture (UNA)</option>
+            <option value="Université Catholique de l'Afrique de l'Ouest (UCAO)">Université Catholique de l'Afrique de l'Ouest (UCAO)</option>
+            <option value="ESGIS">ESGIS</option>
+            <option value="Groupe ISM">Groupe ISM</option>
+            <option value="Institut CERCO">Institut CERCO</option>
+            <option value="autre">Autre (préciser)</option>
+          </select>
+          <input type="text" id="universiteAutre" placeholder="Précisez votre université" style="display:none; margin-top:8px;" />
         </div>
         <div class="form-group">
-          <label>Filière / Niveau</label>
-          <input type="text" id="filiere" placeholder="L1 Informatique" />
+          <label>Filière</label>
+          <select id="filiere" onchange="toggleAutre('filiere')">
+            <option value="" disabled selected>Choisir une filière</option>
+            <option value="Informatique">Informatique</option>
+            <option value="Génie Logiciel">Génie Logiciel</option>
+            <option value="Réseaux et Télécommunications">Réseaux et Télécommunications</option>
+            <option value="Gestion / Management">Gestion / Management</option>
+            <option value="Comptabilité">Comptabilité</option>
+            <option value="Économie">Économie</option>
+            <option value="Droit">Droit</option>
+            <option value="Médecine">Médecine</option>
+            <option value="Génie Civil">Génie Civil</option>
+            <option value="Génie Électrique">Génie Électrique</option>
+            <option value="Agronomie">Agronomie</option>
+            <option value="Marketing / Commerce International">Marketing / Commerce International</option>
+            <option value="Sociologie">Sociologie</option>
+            <option value="autre">Autre (préciser)</option>
+          </select>
+          <input type="text" id="filiereAutre" placeholder="Précisez votre filière" style="display:none; margin-top:8px;" />
         </div>
       </div>
 
@@ -85,6 +117,21 @@
 
   <script src="js/api.js"></script>
   <script>
+    function toggleAutre(field) {
+      const select = document.getElementById(field);
+      const autreInput = document.getElementById(field + 'Autre');
+      autreInput.style.display = select.value === 'autre' ? 'block' : 'none';
+      if (select.value === 'autre') autreInput.focus();
+    }
+
+    function getSelectValue(field) {
+      const select = document.getElementById(field);
+      if (select.value === 'autre') {
+        return document.getElementById(field + 'Autre').value.trim();
+      }
+      return select.value;
+    }
+
     async function handleRegister() {
       const errorMsg = document.getElementById('errorMsg');
       const btn = document.getElementById('registerBtn');
@@ -94,8 +141,8 @@
         prenom: document.getElementById('prenom').value.trim(),
         email: document.getElementById('email').value.trim(),
         telephone: document.getElementById('telephone').value.trim(),
-        universite: document.getElementById('universite').value.trim(),
-        filiere: document.getElementById('filiere').value.trim(),
+        universite: getSelectValue('universite'),
+        filiere: getSelectValue('filiere'),
         niveau: 'licence',
         password: document.getElementById('password').value,
       };
