@@ -59,17 +59,68 @@
       <div class="form-row">
         <div class="form-group">
           <label>Université / Institut</label>
-          <input type="text" id="universite" placeholder="IFRI - UAC" />
+          <select id="universite" onchange="toggleAutre('universite')">
+            <option value="" disabled selected>Choisir une université</option>
+            <option value="IFRI - UAC">IFRI - UAC</option>
+            <option value="EPAC - UAC">EPAC - UAC</option>
+            <option value="ENEAM - UAC">ENEAM - UAC</option>
+            <option value="Université d'Abomey-Calavi (UAC)">Université d'Abomey-Calavi (UAC)</option>
+            <option value="Université de Parakou (UP)">Université de Parakou (UP)</option>
+            <option value="UNSTIM Abomey">UNSTIM Abomey</option>
+            <option value="Université Nationale d'Agriculture (UNA)">Université Nationale d'Agriculture (UNA)</option>
+            <option value="Université Catholique de l'Afrique de l'Ouest (UCAO)">Université Catholique de l'Afrique de l'Ouest (UCAO)</option>
+            <option value="ESGIS">ESGIS</option>
+            <option value="Groupe ISM">Groupe ISM</option>
+            <option value="Institut CERCO">Institut CERCO</option>
+            <option value="autre">Autre (préciser)</option>
+          </select>
+          <input type="text" id="universiteAutre" placeholder="Précisez votre université" style="display:none; margin-top:8px;" />
         </div>
         <div class="form-group">
-          <label>Filière / Niveau</label>
-          <input type="text" id="filiere" placeholder="L1 Informatique" />
+          <label>Filière</label>
+          <select id="filiere" onchange="toggleAutre('filiere')">
+            <option value="" disabled selected>Choisir une filière</option>
+            <option value="Informatique">Informatique</option>
+            <option value="Génie Logiciel">Génie Logiciel</option>
+            <option value="Réseaux et Télécommunications">Réseaux et Télécommunications</option>
+            <option value="Gestion / Management">Gestion / Management</option>
+            <option value="Comptabilité">Comptabilité</option>
+            <option value="Économie">Économie</option>
+            <option value="Droit">Droit</option>
+            <option value="Médecine">Médecine</option>
+            <option value="Génie Civil">Génie Civil</option>
+            <option value="Génie Électrique">Génie Électrique</option>
+            <option value="Agronomie">Agronomie</option>
+            <option value="Marketing / Commerce International">Marketing / Commerce International</option>
+            <option value="Sociologie">Sociologie</option>
+            <option value="autre">Autre (préciser)</option>
+          </select>
+          <input type="text" id="filiereAutre" placeholder="Précisez votre filière" style="display:none; margin-top:8px;" />
         </div>
       </div>
 
-      <div class="form-group">
+            <div class="form-group">
         <label>Mot de passe</label>
-        <input type="password" id="password" placeholder="••••••••" />
+        <div class="password-field">
+          <input type="password" id="password" placeholder="••••••••" oninput="checkPasswordStrength()" />
+          <button type="button" class="password-toggle" onclick="togglePassword('password', this)" aria-label="Afficher le mot de passe">👁️</button>
+        </div>
+        <ul id="passwordRules" class="password-rules">
+          <li id="rule-length">Au moins 8 caractères</li>
+          <li id="rule-upper">Une majuscule</li>
+          <li id="rule-lower">Une minuscule</li>
+          <li id="rule-digit">Un chiffre</li>
+          <li id="rule-special">Un caractère spécial (!@#$...)</li>
+        </ul>
+      </div>
+
+      <div class="form-group">
+        <label>Confirmer le mot de passe</label>
+        <div class="password-field">
+          <input type="password" id="passwordConfirm" placeholder="••••••••" oninput="checkPasswordMatch()" />
+          <button type="button" class="password-toggle" onclick="togglePassword('passwordConfirm', this)" aria-label="Afficher le mot de passe">👁️</button>
+        </div>
+        <p id="passwordMatchMsg" class="password-match-msg"></p>
       </div>
 
       <button class="btn btn--primary btn--full" id="registerBtn" onclick="handleRegister()">
@@ -85,23 +136,101 @@
 
   <script src="js/api.js"></script>
   <script>
+    const PASSWORD_RULES = {
+      length: v => v.length >= 8,
+      upper: v => /[A-Z]/.test(v),
+      lower: v => /[a-z]/.test(v),
+      digit: v => /[0-9]/.test(v),
+      special: v => /[^A-Za-z0-9]/.test(v),
+    };
+
+    function togglePassword(fieldId, btn) {
+      const input = document.getElementById(fieldId);
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.textContent = isHidden ? '🙈' : '👁️';
+      btn.setAttribute('aria-label', isHidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+    }
+
+    function checkPasswordStrength() {
+      const value = document.getElementById('password').value;
+      let allValid = true;
+      for (const rule in PASSWORD_RULES) {
+        const valid = PASSWORD_RULES[rule](value);
+        const li = document.getElementById(`rule-${rule}`);
+        li.classList.toggle('valid', valid);
+        if (!valid) allValid = false;
+      }
+      checkPasswordMatch();
+      return allValid;
+    }
+
+    function isPasswordStrong(value) {
+      return Object.values(PASSWORD_RULES).every(rule => rule(value));
+    }
+
+    function checkPasswordMatch() {
+      const password = document.getElementById('password').value;
+      const confirm = document.getElementById('passwordConfirm').value;
+      const msg = document.getElementById('passwordMatchMsg');
+      if (!confirm) {
+        msg.textContent = '';
+        return true;
+      }
+      const match = password === confirm;
+      msg.textContent = match ? '✓ Les mots de passe correspondent' : '✗ Les mots de passe ne correspondent pas';
+      msg.classList.toggle('valid', match);
+      msg.classList.toggle('invalid', !match);
+      return match;
+    }
+
+    function toggleAutre(field) {
+      const select = document.getElementById(field);
+      const autreInput = document.getElementById(field + 'Autre');
+      autreInput.style.display = select.value === 'autre' ? 'block' : 'none';
+      if (select.value === 'autre') autreInput.focus();
+    }
+
+    function getSelectValue(field) {
+      const select = document.getElementById(field);
+      if (select.value === 'autre') {
+        return document.getElementById(field + 'Autre').value.trim();
+      }
+      return select.value;
+    }
+
     async function handleRegister() {
       const errorMsg = document.getElementById('errorMsg');
       const btn = document.getElementById('registerBtn');
+
+      const password = document.getElementById('password').value;
+      const passwordConfirm = document.getElementById('passwordConfirm').value;
 
       const data = {
         nom: document.getElementById('nom').value.trim(),
         prenom: document.getElementById('prenom').value.trim(),
         email: document.getElementById('email').value.trim(),
         telephone: document.getElementById('telephone').value.trim(),
-        universite: document.getElementById('universite').value.trim(),
-        filiere: document.getElementById('filiere').value.trim(),
+        universite: getSelectValue('universite'),
+        filiere: getSelectValue('filiere'),
         niveau: 'licence',
-        password: document.getElementById('password').value,
+        password: password,
       };
 
       if (!data.nom || !data.prenom || !data.email || !data.password) {
         errorMsg.textContent = 'Veuillez remplir tous les champs obligatoires.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      if (!isPasswordStrong(password)) {
+        errorMsg.textContent = 'Le mot de passe ne respecte pas les règles de sécurité indiquées ci-dessus.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      if (password !== passwordConfirm) {
+        errorMsg.textContent = 'Les mots de passe ne correspondent pas.';
         errorMsg.style.display = 'block';
         return;
       }
