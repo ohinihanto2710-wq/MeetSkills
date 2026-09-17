@@ -1,0 +1,112 @@
+[
+  {
+    "model": "matching.competence",
+    "pk": 1,
+    "fields": { "nom": "Algorithmique", "domaine": "Informatique", "transversale": false }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 2,
+    "fields": { "nom": "Programmation Python", "domaine": "Informatique", "transversale": false }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 3,
+    "fields": { "nom": "Programmation Java", "domaine": "Informatique", "transversale": false }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 4,
+    "fields": { "nom": "Programmation C", "domaine": "Informatique", "transversale": false }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 5,
+    "fields": { "nom": "Bases de données / SQL", "domaine": "Informatique", "transversale": false }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 6,
+    "fields": { "nom": "Développement Web (HTML/CSS/JS)", "domaine": "Informatique", "transversale": false }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 7,
+    "fields": { "nom": "Framework Django", "domaine": "Informatique", "transversale": false }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 8,
+    "fields": { "nom": "Réseaux informatiques", "domaine": "Informatique", "transversale": false }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 9,
+    "fields": { "nom": "Systèmes d'exploitation", "domaine": "Informatique", "transversale": false }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 10,
+    "fields": { "nom": "Structures de données", "domaine": "Informatique", "transversale": false }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 11,
+    "fields": { "nom": "Génie logiciel", "domaine": "Informatique", "transversale": false }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 12,
+    "fields": { "nom": "Intelligence artificielle", "domaine": "Informatique", "transversale": false }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 13,
+    "fields": { "nom": "Recherche opérationnelle", "domaine": "Informatique", "transversale": false }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 14,
+    "fields": { "nom": "Cybersécurité", "domaine": "Informatique", "transversale": false }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 15,
+    "fields": { "nom": "Mathématiques (Analyse)", "domaine": "Général", "transversale": true }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 16,
+    "fields": { "nom": "Mathématiques (Algèbre)", "domaine": "Général", "transversale": true }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 17,
+    "fields": { "nom": "Statistiques & Probabilités", "domaine": "Général", "transversale": true }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 18,
+    "fields": { "nom": "Anglais", "domaine": "Général", "transversale": true }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 19,
+    "fields": { "nom": "Méthodologie de rédaction", "domaine": "Général", "transversale": true }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 20,
+    "fields": { "nom": "Communication écrite", "domaine": "Général", "transversale": true }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 21,
+    "fields": { "nom": "Prise de parole en public", "domaine": "Général", "transversale": true }
+  },
+  {
+    "model": "matching.competence",
+    "pk": 22,
+    "fields": { "nom": "Gestion de projet", "domaine": "Général", "transversale": true }
+  }
+]

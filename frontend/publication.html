@@ -28,8 +28,10 @@
       </a>
     </div>
     <nav class="header__nav" id="mainNav">
+      <a href="index.html">Accueil</a>
       <a href="recherche.html">Trouver un mentor</a>
-      <a href="publication.html" style="color: var(--green); font-weight:600;">Offrir du mentorat</a>
+      <a href="publication.html?type=offre" id="navOffre">Offrir du mentorat</a>
+      <a href="publication.html?type=demande" id="navDemande">Demander de l'aide</a>
       <a href="messagerie.html">Messages</a>
     </nav>
     <div class="header__actions" id="headerActions"></div>
@@ -106,6 +108,13 @@
 
     async function chargerCompetences() {
       if (!isLoggedIn()) { redirectToLogin(); return; }
+
+      // Pré-sélection si type dans l'URL + lien de nav actif correspondant
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('type') === 'demande') setType('demande');
+      const navId = params.get('type') === 'demande' ? 'navDemande' : 'navOffre';
+      document.getElementById(navId).classList.add('active');
+
       const competences = await getCompetences();
       const container = document.getElementById('competencesList');
       if (!competences || competences.length === 0) {
@@ -117,10 +126,6 @@
           ${c.nom}
         </span>
       `).join('');
-
-      // Pré-sélection si type dans l'URL
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('type') === 'demande') setType('demande');
     }
 
     function toggleCompetence(id, nom) {
