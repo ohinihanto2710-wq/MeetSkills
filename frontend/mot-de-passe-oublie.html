@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mot de passe oublié - MeetSkills</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <button class="hamburger" id="hamburger" onclick="toggleMenu()">☰</button>
+</head>
+<body class="auth-page">
+
+  <div class="auth-container">
+
+    <div class="auth-logo">
+      <a href="index.html">
+        <svg width="32" height="32" viewBox="0 0 200 200">
+          <g fill="none" stroke="#3CB371" stroke-width="14" stroke-linecap="round">
+            <path d="M100 100 C 100 60, 70 30, 40 35"/>
+            <path d="M100 100 C 100 60, 120 30, 150 35"/>
+            <path d="M100 100 C 140 100, 170 70, 165 40"/>
+            <path d="M100 100 C 140 100, 170 130, 165 160"/>
+            <path d="M100 100 C 100 140, 130 170, 160 165"/>
+            <path d="M100 100 C 100 140, 80 170, 50 165"/>
+            <path d="M100 100 C 60 100, 30 130, 35 160"/>
+            <path d="M100 100 C 60 100, 30 70, 35 40"/>
+          </g>
+        </svg>
+        <span>MEETSKILLS</span>
+      </a>
+    </div>
+
+    <div class="auth-card">
+      <h1 class="auth-title">Mot de passe oublié</h1>
+      <p class="auth-subtitle">Indiquez votre e-mail, nous vous enverrons un lien de réinitialisation.</p>
+
+      <div id="errorMsg" class="error-msg" style="display:none;"></div>
+      <div id="successMsg" class="success-msg" style="display:none;"></div>
+
+      <div class="form-group" id="emailGroup">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" placeholder="prenom.nom@ifri.uac.bj" />
+      </div>
+
+      <button class="btn btn--primary btn--full" id="sendBtn" onclick="handleResetRequest()">
+        Envoyer le lien
+      </button>
+
+      <p class="auth-footer">
+        <a href="connexion.html" class="form-link">← Retour à la connexion</a>
+      </p>
+    </div>
+
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    async function handleResetRequest() {
+      const email = document.getElementById('email').value.trim();
+      const errorMsg = document.getElementById('errorMsg');
+      const successMsg = document.getElementById('successMsg');
+      const btn = document.getElementById('sendBtn');
+
+      errorMsg.style.display = 'none';
+      successMsg.style.display = 'none';
+
+      if (!email) {
+        errorMsg.textContent = 'Veuillez indiquer votre adresse e-mail.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      btn.textContent = 'Envoi...';
+      btn.disabled = true;
+
+      const result = await demanderResetPassword(email);
+
+      // Djoser renvoie 204 (sans contenu) que l'email existe ou non,
+      // pour ne pas reveler quels emails sont enregistres.
+      if (result.status === 204) {
+        document.getElementById('emailGroup').style.display = 'none';
+        btn.style.display = 'none';
+        successMsg.textContent = 'Si un compte existe avec cet e-mail, un lien de réinitialisation vient de lui être envoyé. Vérifiez votre boîte de réception (et vos spams).';
+        successMsg.style.display = 'block';
+      } else {
+        errorMsg.textContent = 'Une erreur est survenue. Veuillez réessayer.';
+        errorMsg.style.display = 'block';
+        btn.textContent = 'Envoyer le lien';
+        btn.disabled = false;
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleResetRequest();
+    });
+  </script>
+  <script>
+  function toggleMenu() {
+    const nav = document.getElementById('mainNav');
+    nav.classList.toggle('open');
+  }
+</script>
+
+</body>
+</html>

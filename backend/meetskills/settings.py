@@ -154,6 +154,9 @@ AUTH_USER_MODEL = 'accounts.User'
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'USER_CREATE_PASSWORD_RETYPE': False,
+    'PASSWORD_RESET_CONFIRM_URL': 'reinitialiser-mot-de-passe.html?uid={uid}&token={token}',
+    'DOMAIN': os.getenv('FRONTEND_DOMAIN', 'localhost:8000'),
+    'SITE_NAME': 'MeetSkills',
     'SERIALIZERS': {
         'user_create': 'accounts.serializers.UserCreateSerializer',
         'user': 'accounts.serializers.UserSerializer',
@@ -171,3 +174,12 @@ SIMPLE_JWT = {
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# ===== EMAIL (reinitialisation de mot de passe) =====
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = f'MeetSkills <{EMAIL_HOST_USER}>'

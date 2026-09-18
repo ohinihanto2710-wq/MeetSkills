@@ -203,6 +203,38 @@ a { text-decoration: none; color: inherit; }
   margin-bottom: 16px;
 }
 
+/* ===== MOT DE PASSE (oeil, regles, confirmation) ===== */
+.password-field { position: relative; }
+.password-field input { width: 100%; padding-right: 44px; }
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  line-height: 1;
+}
+.password-rules {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  font-size: 12px;
+  color: var(--gray-text, #888);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+}
+.password-rules li::before { content: "○ "; }
+.password-rules li.valid { color: var(--green); }
+.password-rules li.valid::before { content: "✓ "; }
+.password-match-msg { font-size: 12px; margin-top: 6px; min-height: 16px; }
+.password-match-msg.valid { color: var(--green); }
+.password-match-msg.invalid { color: #B3261E; }
+
 /* ===== FORM ROW (deux colonnes) ===== */
 .form-row {
   display: grid;

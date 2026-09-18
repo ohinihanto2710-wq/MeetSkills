@@ -59,6 +59,16 @@ async function register(data) {
   return await apiPost('/auth/users/', data, false);
 }
 
+async function demanderResetPassword(email) {
+  return await apiPost('/auth/users/reset_password/', { email }, false);
+}
+
+async function confirmerResetPassword(uid, token, newPassword) {
+  return await apiPost('/auth/users/reset_password_confirm/', {
+    uid, token, new_password: newPassword
+  }, false);
+}
+
 // ===== MATCHING =====
 async function getAnnonces(type = null) {
   const query = type ? `?type=${type}` : '';
