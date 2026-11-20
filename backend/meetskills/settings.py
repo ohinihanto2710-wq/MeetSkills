@@ -179,10 +179,19 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ===== EMAIL (reinitialisation de mot de passe) =====
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# Render (offre gratuite) bloque le SMTP sortant : on envoie via l'API HTTPS de
+# Brevo des que BREVO_API_KEY est definie. Sinon, repli sur le SMTP (avec delai
+# limite pour ne jamais bloquer une requete indefiniment).
+BREVO_API_KEY = os.getenv('BREVO_API_KEY', '')
+EMAIL_TIMEOUT = 10
+if BREVO_API_KEY:
+    EMAIL_BACKEND = 'accounts.email_backend.BrevoEmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = f'MeetSkills <{EMAIL_HOST_USER}>'
+# L'adresse doit etre celle d'un expediteur verifie dans Brevo.
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL') or f'MeetSkills <{EMAIL_HOST_USER}>'

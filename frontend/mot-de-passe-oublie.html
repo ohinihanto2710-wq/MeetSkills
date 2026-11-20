@@ -82,7 +82,9 @@
         successMsg.textContent = 'Si un compte existe avec cet e-mail, un lien de réinitialisation vient de lui être envoyé. Vérifiez votre boîte de réception (et vos spams).';
         successMsg.style.display = 'block';
       } else {
-        errorMsg.textContent = 'Une erreur est survenue. Veuillez réessayer.';
+        errorMsg.textContent = result.status === 0
+          ? 'Le serveur ne répond pas. Vérifiez votre connexion et réessayez dans un instant.'
+          : 'Impossible d\'envoyer l\'e-mail pour le moment. Veuillez réessayer plus tard.';
         errorMsg.style.display = 'block';
         btn.textContent = 'Envoyer le lien';
         btn.disabled = false;

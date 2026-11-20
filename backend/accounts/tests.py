@@ -80,3 +80,108 @@ class ResetPasswordPolicyTests(APITestCase):
         self.assertEqual(response.status_code, 204, getattr(response, 'data', None))
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password('Nouveau9#mdp'))
+
+
+# ===== Envoi d'e-mails via Brevo =====
+import io
+import json
+import urllib.error
+from unittest import mock
+
+from django.core.mail import EmailMultiAlternatives, send_mail
+from django.test import SimpleTestCase, override_settings
+
+BREVO_SETTINGS = dict(
+    EMAIL_BACKEND='accounts.email_backend.BrevoEmailBackend',
+    BREVO_API_KEY='cle-de-test',
+    DEFAULT_FROM_EMAIL='MeetSkills <expediteur@example.com>',
+)
+
+
+def fake_response():
+    response = mock.MagicMock()
+    response.__enter__.return_value = response
+    response.read.return_value = b'{"messageId": "<abc@smtp-relay.brevo.com>"}'
+    return response
+
+
+@override_settings(**BREVO_SETTINGS)
+class BrevoEmailBackendTests(SimpleTestCase):
+    @mock.patch('urllib.request.urlopen')
+    def test_envoie_la_requete_attendue(self, urlopen):
+        urlopen.return_value = fake_response()
+        sent = send_mail('Sujet', 'Corps du message', None, ['dest@example.com'])
+
+        self.assertEqual(sent, 1)
+        request = urlopen.call_args.args[0]
+        self.assertEqual(request.full_url, 'https://api.brevo.com/v3/smtp/email')
+        self.assertEqual(request.get_header('Api-key'), 'cle-de-test')
+        self.assertEqual(urlopen.call_args.kwargs['timeout'], 10)
+        payload = json.loads(request.data)
+        self.assertEqual(payload['sender'],
+                         {'name': 'MeetSkills', 'email': 'expediteur@example.com'})
+        self.assertEqual(payload['to'], [{'email': 'dest@example.com'}])
+        self.assertEqual(payload['subject'], 'Sujet')
+        self.assertEqual(payload['textContent'], 'Corps du message')
+        self.assertNotIn('htmlContent', payload)
+
+    @mock.patch('urllib.request.urlopen')
+    def test_inclut_la_version_html(self, urlopen):
+        urlopen.return_value = fake_response()
+        message = EmailMultiAlternatives('S', 'texte', None, ['dest@example.com'])
+        message.attach_alternative('<p>html</p>', 'text/html')
+        message.send()
+
+        payload = json.loads(urlopen.call_args.args[0].data)
+        self.assertEqual(payload['htmlContent'], '<p>html</p>')
+        self.assertEqual(payload['textContent'], 'texte')
+
+    @mock.patch('urllib.request.urlopen')
+    def test_erreur_http_remontee(self, urlopen):
+        urlopen.side_effect = urllib.error.HTTPError(
+            'https://api.brevo.com/v3/smtp/email', 401, 'Unauthorized', {},
+            io.BytesIO(b'{"message": "Key not found"}'))
+        with self.assertLogs('accounts.email_backend', level='ERROR') as logs:
+            with self.assertRaises(urllib.error.HTTPError):
+                send_mail('S', 'c', None, ['dest@example.com'])
+        self.assertIn('Key not found', logs.output[0])
+
+    @mock.patch('urllib.request.urlopen')
+    def test_fail_silently(self, urlopen):
+        urlopen.side_effect = urllib.error.URLError('injoignable')
+        with self.assertLogs('accounts.email_backend', level='ERROR'):
+            sent = send_mail('S', 'c', None, ['dest@example.com'], fail_silently=True)
+        self.assertEqual(sent, 0)
+
+
+@override_settings(**BREVO_SETTINGS)
+class ResetPasswordEmailFlowTests(APITestCase):
+    """Parcours complet « mot de passe oublié » : Djoser -> backend Brevo."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email='etudiant@example.com', password='Ancien1!mdp',
+            nom='A', prenom='B', universite='UAC', filiere='Info', niveau='L1',
+        )
+
+    @mock.patch('urllib.request.urlopen')
+    def test_demande_de_reinitialisation_envoie_le_lien(self, urlopen):
+        urlopen.return_value = fake_response()
+        response = self.client.post(
+            '/api/auth/users/reset_password/', {'email': 'etudiant@example.com'},
+            format='json')
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(urlopen.call_count, 1)
+        payload = json.loads(urlopen.call_args.args[0].data)
+        self.assertEqual(payload['to'], [{'email': 'etudiant@example.com'}])
+        body = payload.get('htmlContent', '') + payload.get('textContent', '')
+        self.assertIn('reinitialiser-mot-de-passe.html?uid=', body)
+
+    @mock.patch('urllib.request.urlopen')
+    def test_email_inconnu_n_envoie_rien(self, urlopen):
+        response = self.client.post(
+            '/api/auth/users/reset_password/', {'email': 'inconnu@example.com'},
+            format='json')
+        self.assertEqual(response.status_code, 204)
+        urlopen.assert_not_called()

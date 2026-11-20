@@ -29,15 +29,33 @@ async function apiGet(endpoint) {
   return response.json();
 }
 
-async function apiPost(endpoint, data, auth = true) {
+// Retourne toujours { status, data } sans jamais lever d'exception :
+// - une reponse sans contenu (ex. 204 de Djoser) donne data = null ;
+// - une reponse non-JSON (page d'erreur 500...) donne data = null ;
+// - serveur injoignable ou trop lent (delai depasse) donne status = 0.
+async function apiPost(endpoint, data, auth = true, timeoutMs = 30000) {
   const headers = { 'Content-Type': 'application/json' };
   if (auth) headers['Authorization'] = `Bearer ${getToken()}`;
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(data)
-  });
-  return { status: response.status, data: await response.json() };
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+      signal: controller.signal
+    });
+    const text = await response.text();
+    let body = null;
+    if (text) {
+      try { body = JSON.parse(text); } catch (e) { body = null; }
+    }
+    return { status: response.status, data: body };
+  } catch (e) {
+    return { status: 0, data: null };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // ===== AUTH =====
