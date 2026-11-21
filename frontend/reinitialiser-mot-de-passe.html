@@ -40,7 +40,7 @@
         <div class="form-group">
           <label>Nouveau mot de passe</label>
           <div class="password-field">
-            <input type="password" id="password" placeholder="••••••••" oninput="checkPasswordStrength()" />
+            <input type="password" id="password" placeholder="••••••••" autocomplete="new-password" oninput="checkPasswordStrength()" />
             <button type="button" class="password-toggle" onclick="togglePassword('password', this)" aria-label="Afficher le mot de passe">👁️</button>
           </div>
           <ul id="passwordRules" class="password-rules">
@@ -55,7 +55,7 @@
         <div class="form-group">
           <label>Confirmer le mot de passe</label>
           <div class="password-field">
-            <input type="password" id="passwordConfirm" placeholder="••••••••" oninput="checkPasswordMatch()" />
+            <input type="password" id="passwordConfirm" placeholder="••••••••" autocomplete="new-password" oninput="checkPasswordMatch()" />
             <button type="button" class="password-toggle" onclick="togglePassword('passwordConfirm', this)" aria-label="Afficher le mot de passe">👁️</button>
           </div>
           <p id="passwordMatchMsg" class="password-match-msg"></p>
