@@ -185,3 +185,68 @@ class ResetPasswordEmailFlowTests(APITestCase):
             format='json')
         self.assertEqual(response.status_code, 204)
         urlopen.assert_not_called()
+
+
+# ===== Lien de reinitialisation : domaine du frontend =====
+from django.conf import settings as dj_settings
+
+from accounts.email_backend import _contact
+from meetskills.settings import _clean_domain
+
+
+class CleanDomainTests(SimpleTestCase):
+    def test_nettoie_les_fautes_de_saisie(self):
+        for saisi in [
+            'stately-meerkat-256530.netlify.app',
+            'https://stately-meerkat-256530.netlify.app',
+            'https://stately-meerkat-256530.netlify.app/',
+            ' stately-meerkat-256530.netlify.app. ',
+            '"stately-meerkat-256530.netlify.app"',
+        ]:
+            self.assertEqual(_clean_domain(saisi), 'stately-meerkat-256530.netlify.app', saisi)
+
+    def test_vide(self):
+        self.assertEqual(_clean_domain(None), '')
+
+    def test_domain_et_site_name_sont_au_premier_niveau(self):
+        # Djoser 2.3.x ignore DJOSER['DOMAIN'] : il lit settings.DOMAIN
+        self.assertTrue(dj_settings.DOMAIN)
+        self.assertEqual(dj_settings.SITE_NAME, 'MeetSkills')
+
+
+class ExpediteurTolerantTests(SimpleTestCase):
+    def test_formats_valides_et_mal_saisis(self):
+        attendu = {'name': 'MeetSkills', 'email': 'ohinihanto2710@gmail.com'}
+        for saisi in [
+            'MeetSkills <ohinihanto2710@gmail.com>',
+            'MeetSkills <ohinihanto2710@gmail.com>.',   # point final (cas reel)
+            '"MeetSkills <ohinihanto2710@gmail.com>"',   # guillemets autour
+            "'MeetSkills <ohinihanto2710@gmail.com>'",
+        ]:
+            self.assertEqual(_contact(saisi), attendu, saisi)
+
+    def test_adresse_seule(self):
+        self.assertEqual(_contact('ohinihanto2710@gmail.com'),
+                         {'email': 'ohinihanto2710@gmail.com'})
+
+    def test_adresse_absente_leve_une_erreur_claire(self):
+        with self.assertRaises(ValueError):
+            _contact('MeetSkills <>')
+
+
+@override_settings(DOMAIN='stately-meerkat-256530.netlify.app', **BREVO_SETTINGS)
+class LienReinitialisationTests(APITestCase):
+    @mock.patch('urllib.request.urlopen')
+    def test_le_lien_pointe_vers_le_frontend(self, urlopen):
+        urlopen.return_value = fake_response()
+        User.objects.create_user(
+            email='etudiant@example.com', password='Ancien1!mdp',
+            nom='A', prenom='B', universite='UAC', filiere='Info', niveau='L1')
+        self.client.post('/api/auth/users/reset_password/',
+                         {'email': 'etudiant@example.com'}, format='json')
+
+        payload = json.loads(urlopen.call_args.args[0].data)
+        body = payload.get('htmlContent', '') + payload.get('textContent', '')
+        self.assertIn('stately-meerkat-256530.netlify.app/reinitialiser-mot-de-passe.html?uid=', body)
+        self.assertNotIn('testserver/reinitialiser', body)
+        self.assertIn('MeetSkills', body)

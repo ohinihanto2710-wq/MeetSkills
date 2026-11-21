@@ -14,6 +14,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 import os
+import re
 
 load_dotenv()
 
@@ -153,13 +154,25 @@ CORS_ALLOWED_ORIGINS = [
 # Auth
 AUTH_USER_MODEL = 'accounts.User'
 
+# Domaine du FRONTEND utilise dans les liens des e-mails Djoser (lien de
+# reinitialisation). Djoser 2.3.x lit DOMAIN et SITE_NAME ici, au premier niveau
+# des reglages Django, et non dans le dictionnaire DJOSER. Sans cela, le lien
+# pointe vers le domaine du backend (Render) et donne une erreur 404.
+def _clean_domain(value):
+    """'https://site.netlify.app/.' -> 'site.netlify.app' (tolere les fautes de saisie)."""
+    value = (value or '').strip().strip('\'"').strip()
+    value = re.sub(r'^https?://', '', value, flags=re.IGNORECASE)
+    return value.strip('/. ')
+
+
+DOMAIN = _clean_domain(os.getenv('FRONTEND_DOMAIN')) or 'localhost:8000'
+SITE_NAME = 'MeetSkills'
+
 # Djoser
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'USER_CREATE_PASSWORD_RETYPE': False,
     'PASSWORD_RESET_CONFIRM_URL': 'reinitialiser-mot-de-passe.html?uid={uid}&token={token}',
-    'DOMAIN': os.getenv('FRONTEND_DOMAIN', 'localhost:8000'),
-    'SITE_NAME': 'MeetSkills',
     'SERIALIZERS': {
         'user_create': 'accounts.serializers.UserCreateSerializer',
         'user': 'accounts.serializers.UserSerializer',

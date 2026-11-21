@@ -8,6 +8,7 @@ Aucune dépendance supplémentaire : on utilise uniquement la bibliothèque stan
 """
 import json
 import logging
+import re
 import urllib.error
 import urllib.request
 from email.utils import parseaddr
@@ -20,8 +21,19 @@ logger = logging.getLogger(__name__)
 BREVO_SEND_URL = 'https://api.brevo.com/v3/smtp/email'
 
 
+_EMAIL_RE = re.compile(r'[\w.+-]+@[\w-]+(?:\.[\w-]+)+')
+
+
 def _contact(address):
     name, email = parseaddr(address)
+    if not _EMAIL_RE.fullmatch(email):
+        # Valeur mal saisie (point final, guillemets...) : parseaddr renvoie alors
+        # une adresse vide. On retrouve l'adresse e-mail dans le texte.
+        match = _EMAIL_RE.search(address or '')
+        if not match:
+            raise ValueError("Adresse e-mail invalide ou absente : %r" % (address,))
+        email = match.group(0)
+        name = address[:match.start()].strip(' <"\'')
     contact = {'email': email}
     if name:
         contact['name'] = name
